@@ -1,0 +1,87 @@
+plugins {
+    id 'java'
+    id 'io.qameta.allure' version '2.12.0'
+}
+
+wrapper {
+    gradleVersion = '8.10.2'
+}
+
+repositories {
+    mavenCentral()
+}
+
+group = 'ru.at.backend'
+version = '1.0-SNAPSHOT'
+
+def allureVersion = '2.29.0'
+def allureCommandlineVersion = '2.31.0'
+def aspectJVersion = '1.9.22'
+def restAssuredVersion = '5.5.0'
+def junitVersion = '5.11.3'
+def assertJVersion = '3.26.3'
+def jacksonVersion = '2.17.2'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.compilerArgs.add('-parameters')
+}
+
+configurations {
+    agent {
+        canBeResolved = true
+        canBeConsumed = false
+    }
+}
+
+dependencies {
+    agent "org.aspectj:aspectjweaver:$aspectJVersion"
+
+    testImplementation platform("org.junit:junit-bom:$junitVersion")
+    testImplementation "org.junit.jupiter:junit-jupiter-api"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+
+    testImplementation platform("io.qameta.allure:allure-bom:$allureVersion")
+    testImplementation "io.qameta.allure:allure-junit5"
+    testImplementation "io.qameta.allure:allure-rest-assured"
+
+    testImplementation "io.rest-assured:rest-assured:$restAssuredVersion"
+    testImplementation "org.assertj:assertj-core:$assertJVersion"
+    testImplementation "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+    testImplementation "org.slf4j:slf4j-simple:2.0.16"
+}
+
+allure {
+    version = allureCommandlineVersion
+}
+
+tasks.register('allureServeWithTests') {
+    group = 'verification'
+    description = 'Runs API tests and launches Allure server with the generated report'
+
+    dependsOn test
+    finalizedBy allureServe
+}
+
+test {
+    useJUnitPlatform()
+    jvmArgs = ["-javaagent:${configurations.agent.singleFile}"]
+
+    ['baseUri', 'baseUrl'].each { propertyName ->
+        if (System.getProperty(propertyName) != null) {
+            systemProperty propertyName, System.getProperty(propertyName)
+        }
+    }
+
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+        exceptionFormat 'full'
+        showStandardStreams = false
+    }
+}

@@ -1,0 +1,21 @@
+{
+  "base": {
+    "logo": "",
+    "project": "at-backend",
+    "environment": "https://practice.expandtesting.com/notes/api",
+    "comment": "Backend API autotests",
+    "reportLink": "",
+    "language": "ru",
+    "allureFolder": "build/reports/allure-report/allureReport",
+    "enableChart": true,
+    "enableSuitesPublishing": false,
+    "customData": {}
+  },
+  "telegram": {
+    "token": "",
+    "chat": "",
+    "topic": "",
+    "replyTo": "",
+    "templatePath": "/templates/telegram.ftl"
+  }
+}
