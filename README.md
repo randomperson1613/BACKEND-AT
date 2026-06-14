@@ -1,180 +1,85 @@
-# API автотесты Notes API
+# 🚀 API автотесты Notes API
 
-Проект содержит backend API-автотесты для учебного сервиса [practice.expandtesting.com Notes API](https://practice.expandtesting.com/notes/api/api-docs/). Тесты написаны на Java 21 с использованием JUnit 5, RestAssured и Allure.
+Проект содержит backend API-автотесты для учебного сервиса [practice.expandtesting.com Notes API](https://practice.expandtesting.com/notes/api). Тесты написаны на Java 21 с использованием JUnit 5, RestAssured и Allure.
 
-## Что покрыто тестами
+---
 
-Реализовано 14 API-тестов по основным группам:
+## ☕ Технологии и инструменты
 
-- `HealthTest` - проверка доступности API через `GET /health-check`.
-- `AuthTest` - регистрация, логин, профиль, обновление профиля, logout и негативные сценарии авторизации.
-- `NotesTest` - CRUD заметок: создание, получение по id, список, обновление через `PUT`, изменение `completed` через `PATCH`, удаление через `DELETE`, негативный сценарий создания.
+| Технология | Назначение |
+|------------|-----------|
+| ☕ Java 21 | Язык программирования |
+| 🏗️ Gradle | Система сборки проекта |
+| 🧪 JUnit 5 | Фреймворк для модульного тестирования |
+| 🌐 RestAssured | Библиотека для тестирования REST API |
+| 📊 Allure | Фреймворк для генерации отчетов о тестировании |
+| 🔄 Jenkins | CI/CD сервер для автоматизации сборок |
+| 📱 Telegram Bot | Уведомления о результатах тестирования |
 
-Требования ТЗ закрыты:
+---
 
-- Есть больше 5 тестов.
-- Используются HTTP-методы `GET`, `POST`, `DELETE`; дополнительно покрыты `PUT` и `PATCH`.
-- `RestAssured.baseURI` задается централизованно в базовой конфигурации.
-- Запросы выполняются только через endpoint, без полного URL в тестах.
-- Созданы базовые request/response specifications.
-- Подключен `AllureRestAssured` filter с tpl-шаблонами в базовой request specification.
-- Request/response body описаны DTO-классами.
-- В тестах есть проверки status code, JSON path и десериализованных моделей.
+## 📠 Реализованные проверки
 
-## Требования
+Реализовано **14 API-тестов** по основным группам:
 
-- JDK 21.
-- Доступ в интернет, так как тестируется внешний API.
-- Gradle устанавливать отдельно не нужно, используется Gradle Wrapper: `./gradlew`.
-- Allure CLI отдельно устанавливать не нужно: генерация отчета выполняется через Gradle-плагин.
+### ✅ Health Check
+- Проверка доступности API через `GET /health-check`
 
-## Структура проекта
+### 🔐 Авторизация и регистрация
+- Регистрация нового пользователя
+- Логин существующего пользователя
+- Получение профиля пользователя
+- Обновление профиля
+- Logout
+- Негативные сценарии авторизации (неверный пароль, несуществующий пользователь)
 
-```text
-src/test/java/ru/at/backend/config          # RestAssured baseURI, request/response specifications
-src/test/java/ru/at/backend/client          # API-клиент с endpoint-only запросами
-src/test/java/ru/at/backend/endpoints       # константы endpoint'ов
-src/test/java/ru/at/backend/model           # enum и DTO request/response body
-src/test/java/ru/at/backend/support         # тестовые support-модели
-src/test/java/ru/at/backend/tests           # JUnit 5 тесты
-src/test/resources/tpl                      # Allure REST Assured Freemarker-шаблоны
-src/test/resources/allure.properties        # директория Allure results
-notifications                               # Telegram-уведомления Jenkins по Allure summary
-Jenkinsfile                                 # CI pipeline для backend API-тестов
-```
+### 📝 Работа с заметками (CRUD)
+- Создание новой заметки (`POST`)
+- Получение заметки по id (`GET`)
+- Получение списка всех заметок (`GET`)
+- Обновление заметки через `PUT`
+- Изменение статуса `completed` через `PATCH`
+- Удаление заметки через `DELETE`
+- Негативный сценарий создания заметки без авторизации
 
-## Быстрый запуск
+---
 
-Запуск всех тестов:
+## 🔄 Jenkins
 
-```bash
-./gradlew clean test
-```
+Сборка и запуск тестов автоматизированы через Jenkins.
 
-Запуск с явным API URL:
+🔗 **Ссылка на Jenkins job:**  
+[40-rodneystone-diplom-backend](https://jenkins.autotests.cloud/job/40-rodneystone-diplom-backend/)
 
-```bash
-./gradlew clean test -DbaseUri=https://practice.expandtesting.com/notes/api
-```
+<!-- TODO: Добавить скриншот Jenkins job -->
+<!-- ![Jenkins Job](docs/images/jenkins-job.png) -->
 
-Запуск конкретного тестового класса:
+---
 
-```bash
-./gradlew test --tests ru.at.backend.tests.NotesTest
-```
+## 📊 Allure Report
 
-Запуск конкретного теста:
+После выполнения тестов автоматически генерируется Allure-отчет с детальной информацией о каждом тесте, включая request/response body, скриншоты и логи.
 
-```bash
-./gradlew test --tests ru.at.backend.tests.AuthTest.shouldRegisterAndLoginNewUser
-```
+🔗 **Ссылка на Allure Report:**  
+[Allure Report - Build #7](https://jenkins.autotests.cloud/job/40-rodneystone-diplom-backend/7/allure/)
 
-## Параметры запуска
+<!-- TODO: Добавить скриншот Allure Report -->
+<!-- ![Allure Report](docs/images/allure-report.png) -->
 
-| Параметр | Значение по умолчанию | Описание |
-| --- | --- | --- |
-| `baseUri` | `https://practice.expandtesting.com/notes/api` | Базовый URI тестируемого API |
-| `baseUrl` | не задан | Алиас для `baseUri`, оставлен для совместимости |
-| `BASE_URI` | не задан | Environment variable для Jenkins/CI |
+---
 
-Приоритет конфигурации: `-DbaseUri`, затем `-DbaseUrl`, затем `BASE_URI`, затем значение по умолчанию.
+## 📱 Telegram-уведомления
 
-## Отчеты
+После выполнения тестов Jenkins автоматически отправляет уведомление в Telegram с результатами тестирования через бота.
 
-JUnit HTML-отчет после запуска тестов:
+🤖 **Telegram бот:** [@rodneystone-at-bot](https://t.me/rodneystone-at-bot)
 
-```text
-build/reports/tests/test/index.html
-```
+<!-- TODO: Добавить скриншот Telegram уведомления -->
+<!-- ![Telegram Notification](docs/images/telegram-notification.png) -->
 
-Allure results сохраняются в:
+---
 
-```text
-build/allure-results
-```
-
-Сгенерировать Allure HTML-отчет:
-
-```bash
-./gradlew allureReport
-```
-
-Готовый Allure HTML-отчет будет лежать здесь:
-
-```text
-build/reports/allure-report/allureReport
-```
-
-Запустить тесты и сразу собрать Allure HTML-отчет:
+## ✅ Полная проверка проекта
 
 ```bash
 ./gradlew clean test allureReport
-```
-
-Открыть Allure-отчет через локальный сервер Gradle-плагина:
-
-```bash
-./gradlew allureServe
-```
-
-Запустить тесты и после них открыть Allure-отчет через локальный сервер:
-
-```bash
-./gradlew clean allureServeWithTests
-```
-
-## Jenkins
-
-`Jenkinsfile` запускает backend API-тесты без браузера, Selenoid и видео. Нужен Jenkins-agent с JDK 21 и доступом в интернет.
-
-Параметры job:
-
-- `BASE_URI=https://practice.expandtesting.com/notes/api` - базовый URI API.
-
-Основной шаг pipeline:
-
-```bash
-./gradlew clean test -DbaseUri="$BASE_URI" --no-daemon
-```
-
-После тестов Jenkins:
-
-- публикует JUnit XML из `build/test-results/test/*.xml`;
-- генерирует Allure HTML-отчет;
-- публикует Allure results через Jenkins Allure plugin;
-- архивирует JUnit/Allure артефакты;
-- отправляет Telegram-уведомление, если найден `summary.json`.
-
-## Telegram-уведомления в Jenkins
-
-После выполнения тестов Jenkins запускает `notifications/allure-notifications-4.11.0.jar`. Базовый шаблон лежит в `notifications/config.json`, но токен бота и chat id в репозиторий не записываются.
-
-В Jenkins создайте два `Secret text` credentials:
-
-- `telegram-bot-token-rodneystone` - токен Telegram-бота.
-- `telegram-chat-id-rodneystone` - id чата, куда бот отправляет отчет.
-
-Runtime-конфиг `notifications/config-runtime.json` создается Jenkinsfile автоматически и игнорируется в git.
-
-## Allure-разметка
-
-В проекте используются:
-
-- `@Epic`, `@Feature`, `@Story` для группировки тестов.
-- `@DisplayName`, `@Owner`, `@Severity` для описания тест-кейсов.
-- `@Step` в API-клиенте для отображения запросов в Allure.
-- `AllureRestAssured` для вложений HTTP request/response.
-
-В request-шаблоне заголовки `x-auth-token` и `Authorization` маскируются.
-
-## Полная проверка проекта
-
-```bash
-./gradlew clean test allureReport
-```
-
-Ожидаемый результат:
-
-```text
-BUILD SUCCESSFUL
-```
