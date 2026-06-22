@@ -1,15 +1,22 @@
 package ru.at.backend.endpoints;
 
-public final class NotesApiEndpoints {
-    public static final String HEALTH_CHECK = "/health-check";
-    public static final String USERS_REGISTER = "/users/register";
-    public static final String USERS_LOGIN = "/users/login";
-    public static final String USERS_PROFILE = "/users/profile";
-    public static final String USERS_LOGOUT = "/users/logout";
-    public static final String USERS_DELETE_ACCOUNT = "/users/delete-account";
-    public static final String NOTES = "/notes";
-    public static final String NOTE_BY_ID = "/notes/{id}";
+public enum NotesApiEndpoints {
+    HEALTH_CHECK("/health-check"),
+    USERS_REGISTER("/users/register"),
+    USERS_LOGIN("/users/login"),
+    USERS_PROFILE("/users/profile"),
+    USERS_LOGOUT("/users/logout"),
+    USERS_DELETE_ACCOUNT("/users/delete-account"),
+    NOTES("/notes"),
+    NOTE_BY_ID("/notes/{id}");
 
-    private NotesApiEndpoints() {
+    private final String path;
+
+    NotesApiEndpoints(String path) {
+        this.path = path;
+    }
+
+    public String path() {
+        return path;
     }
 }

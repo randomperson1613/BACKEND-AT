@@ -3,7 +3,7 @@ package ru.at.backend.tests;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import ru.at.backend.client.NotesApiClient;
-import ru.at.backend.config.Specifications;
+import ru.at.backend.config.RestAssuredConfig;
 import ru.at.backend.model.request.LoginRequest;
 import ru.at.backend.model.request.RegisterUserRequest;
 import ru.at.backend.model.response.LoginResponse;
@@ -22,7 +22,7 @@ public abstract class BaseApiTest {
 
     @BeforeAll
     static void configureRestAssured() {
-        Specifications.install();
+        RestAssuredConfig.install();
     }
 
     @AfterEach
