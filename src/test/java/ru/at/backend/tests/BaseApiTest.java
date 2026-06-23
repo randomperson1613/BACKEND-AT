@@ -51,11 +51,11 @@ public abstract class BaseApiTest {
 
         api.register(new RegisterUserRequest(user.name(), user.email(), user.password()))
                 .then()
-                .spec(responseSpec(201));
+                .spec(responseSpec(201, true));
 
         LoginResponse loginResponse = api.login(new LoginRequest(user.email(), user.password()))
                 .then()
-                .spec(responseSpec(200))
+                .spec(responseSpec(200, true))
                 .extract()
                 .as(LoginResponse.class);
 
@@ -73,7 +73,7 @@ public abstract class BaseApiTest {
     protected String loginForCleanup(TestUser user) {
         LoginResponse loginResponse = api.login(new LoginRequest(user.email(), user.password()))
                 .then()
-                .spec(responseSpec(200))
+                .spec(responseSpec(200, true))
                 .extract()
                 .as(LoginResponse.class);
         assertThat(loginResponse.data().token()).isNotBlank();

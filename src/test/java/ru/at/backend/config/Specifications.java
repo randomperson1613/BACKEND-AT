@@ -6,6 +6,7 @@ import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 import io.restassured.specification.ResponseSpecification;
 
+import static org.hamcrest.Matchers.equalTo;
 import static ru.at.backend.helpers.CustomApiListener.withCustomTemplates;
 
 public class Specifications {
@@ -24,10 +25,12 @@ public class Specifications {
                 .build();
     }
 
-    public static ResponseSpecification responseSpec(int statusCode) {
+    public static ResponseSpecification responseSpec(int statusCode, boolean success) {
         return new ResponseSpecBuilder()
                 .addResponseSpecification(baseResponseSpec())
                 .expectStatusCode(statusCode)
+                .expectBody("success", equalTo(success))
+                .expectBody("status", equalTo(statusCode))
                 .build();
     }
 }

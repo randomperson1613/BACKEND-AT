@@ -6,13 +6,11 @@ import io.qameta.allure.Owner;
 import io.qameta.allure.Severity;
 import io.qameta.allure.SeverityLevel;
 import io.qameta.allure.Story;
-import io.restassured.response.Response;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import ru.at.backend.model.response.BaseResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.equalTo;
 import static ru.at.backend.config.Specifications.responseSpec;
 
 @Epic("Notes API")
@@ -25,15 +23,12 @@ class HealthTest extends BaseApiTest {
     @Severity(SeverityLevel.BLOCKER)
     @DisplayName("GET /health-check возвращает статус работающего API")
     void shouldReturnHealthCheckStatus() {
-        Response response = api.healthCheck();
+        BaseResponse model = api.healthCheck()
+                .then()
+                .spec(responseSpec(200, true))
+                .extract()
+                .as(BaseResponse.class);
 
-        response.then()
-                .spec(responseSpec(200))
-                .body("success", equalTo(true))
-                .body("status", equalTo(200))
-                .body("message", equalTo("Notes API is Running"));
-
-        BaseResponse model = response.as(BaseResponse.class);
-        assertThat(model).isEqualTo(new BaseResponse(true, 200, "Notes API is Running"));
+        assertThat(model.message()).isEqualTo("Notes API is Running");
     }
 }

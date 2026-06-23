@@ -6,13 +6,11 @@ import io.qameta.allure.Owner;
 import io.qameta.allure.Severity;
 import io.qameta.allure.SeverityLevel;
 import io.qameta.allure.Story;
-import io.restassured.response.Response;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import ru.at.backend.model.request.LoginRequest;
 import ru.at.backend.model.request.RegisterUserRequest;
 import ru.at.backend.model.request.UpdateProfileRequest;
-import ru.at.backend.model.response.BaseResponse;
 import ru.at.backend.model.response.ErrorResponse;
 import ru.at.backend.model.response.LoginResponse;
 import ru.at.backend.model.response.ProfileResponse;
@@ -22,9 +20,6 @@ import ru.at.backend.support.TestUser;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.text.IsEmptyString.emptyOrNullString;
 import static ru.at.backend.config.Specifications.responseSpec;
 
 @Epic("Notes API")
@@ -39,26 +34,23 @@ class AuthTest extends BaseApiTest {
     void shouldRegisterAndLoginNewUser() {
         TestUser user = newUser();
 
-        Response registerResponse = api.register(new RegisterUserRequest(user.name(), user.email(), user.password()));
-        registerResponse.then()
-                .spec(responseSpec(201))
-                .body("success", equalTo(true))
-                .body("status", equalTo(201))
-                .body("data.name", equalTo(user.name()))
-                .body("data.email", equalTo(user.email()));
+        RegisterResponse registerModel = api.register(new RegisterUserRequest(user.name(), user.email(), user.password()))
+                .then()
+                .spec(responseSpec(201, true))
+                .extract()
+                .as(RegisterResponse.class);
 
-        RegisterResponse registerModel = registerResponse.as(RegisterResponse.class);
         assertThat(registerModel.data().id()).isNotBlank();
+        assertThat(registerModel.data().name()).isEqualTo(user.name());
         assertThat(registerModel.data().email()).isEqualTo(user.email());
 
-        Response loginResponse = api.login(new LoginRequest(user.email(), user.password()));
-        loginResponse.then()
-                .spec(responseSpec(200))
-                .body("success", equalTo(true))
-                .body("data.email", equalTo(user.email()))
-                .body("data.token", not(emptyOrNullString()));
+        LoginResponse loginModel = api.login(new LoginRequest(user.email(), user.password()))
+                .then()
+                .spec(responseSpec(200, true))
+                .extract()
+                .as(LoginResponse.class);
 
-        LoginResponse loginModel = loginResponse.as(LoginResponse.class);
+        assertThat(loginModel.data().email()).isEqualTo(user.email());
         assertThat(loginModel.data().token()).hasSize(64);
         rememberForCleanup(user.withId(loginModel.data().id()).withToken(loginModel.data().token()));
     }
@@ -70,15 +62,13 @@ class AuthTest extends BaseApiTest {
     void shouldReturnAuthorizedUserProfile() {
         TestUser user = registerAndLoginNewUser();
 
-        Response profileResponse = api.getProfile(user.token());
-        profileResponse.then()
-                .spec(responseSpec(200))
-                .body("success", equalTo(true))
-                .body("status", equalTo(200))
-                .body("data.id", equalTo(user.id()))
-                .body("data.email", equalTo(user.email()));
+        ProfileResponse profileModel = api.getProfile(user.token())
+                .then()
+                .spec(responseSpec(200, true))
+                .extract()
+                .as(ProfileResponse.class);
 
-        ProfileResponse profileModel = profileResponse.as(ProfileResponse.class);
+        assertThat(profileModel.data().id()).isEqualTo(user.id());
         assertThat(profileModel.data().name()).isEqualTo(user.name());
         assertThat(profileModel.data().email()).isEqualTo(user.email());
     }
@@ -91,15 +81,12 @@ class AuthTest extends BaseApiTest {
         TestUser user = registerAndLoginNewUser();
         UpdateProfileRequest request = new UpdateProfileRequest("Updated " + user.name(), "79990000000", "AT Backend");
 
-        Response updateResponse = api.updateProfile(user.token(), request);
-        updateResponse.then()
-                .spec(responseSpec(200))
-                .body("success", equalTo(true))
-                .body("data.name", equalTo(request.name()))
-                .body("data.phone", equalTo(request.phone()))
-                .body("data.company", equalTo(request.company()));
+        ProfileResponse profileModel = api.updateProfile(user.token(), request)
+                .then()
+                .spec(responseSpec(200, true))
+                .extract()
+                .as(ProfileResponse.class);
 
-        ProfileResponse profileModel = updateResponse.as(ProfileResponse.class);
         assertThat(profileModel.data().name()).isEqualTo(request.name());
         assertThat(profileModel.data().phone()).isEqualTo(request.phone());
         assertThat(profileModel.data().company()).isEqualTo(request.company());
@@ -110,16 +97,13 @@ class AuthTest extends BaseApiTest {
     @Severity(SeverityLevel.CRITICAL)
     @DisplayName("GET /users/profile без x-auth-token возвращает 401")
     void shouldRejectProfileRequestWithoutToken() {
-        Response response = api.getProfileWithoutToken();
+        ErrorResponse error = api.getProfileWithoutToken()
+                .then()
+                .spec(responseSpec(401, false))
+                .extract()
+                .as(ErrorResponse.class);
 
-        response.then()
-                .spec(responseSpec(401))
-                .body("success", equalTo(false))
-                .body("status", equalTo(401))
-                .body("message", equalTo("No authentication token specified in x-auth-token header"));
-
-        ErrorResponse error = response.as(ErrorResponse.class);
-        assertThat(error.message()).contains("No authentication token");
+        assertThat(error.message()).isEqualTo("No authentication token specified in x-auth-token header");
     }
 
     @Test
@@ -129,16 +113,13 @@ class AuthTest extends BaseApiTest {
     void shouldRejectLoginWithUnknownEmail() {
         String email = "missing-" + UUID.randomUUID().toString().replace("-", "") + "@example.com";
 
-        Response response = api.login(new LoginRequest(email, "Pass12345"));
-        response.then()
-                .spec(responseSpec(401))
-                .body("success", equalTo(false))
-                .body("status", equalTo(401))
-                .body("message", equalTo("Incorrect email address or password"));
+        ErrorResponse error = api.login(new LoginRequest(email, "Pass12345"))
+                .then()
+                .spec(responseSpec(401, false))
+                .extract()
+                .as(ErrorResponse.class);
 
-        ErrorResponse error = response.as(ErrorResponse.class);
-        assertThat(error.success()).isFalse();
-        assertThat(error.status()).isEqualTo(401);
+        assertThat(error.message()).isEqualTo("Incorrect email address or password");
     }
 
     @Test
@@ -148,19 +129,12 @@ class AuthTest extends BaseApiTest {
     void shouldLogoutUserAndInvalidateToken() {
         TestUser user = registerAndLoginNewUser();
 
-        Response logoutResponse = api.logout(user.token());
-        logoutResponse.then()
-                .spec(responseSpec(200))
-                .body("success", equalTo(true))
-                .body("status", equalTo(200));
-
-        BaseResponse logoutModel = logoutResponse.as(BaseResponse.class);
-        assertThat(logoutModel.success()).isTrue();
+        api.logout(user.token())
+                .then()
+                .spec(responseSpec(200, true));
 
         api.getProfile(user.token())
                 .then()
-                .spec(responseSpec(401))
-                .body("success", equalTo(false))
-                .body("status", equalTo(401));
+                .spec(responseSpec(401, false));
     }
 }
